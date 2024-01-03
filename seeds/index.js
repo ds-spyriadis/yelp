@@ -1,0 +1,54 @@
+const mongoose = require('mongoose');
+const cities=require("./cities");
+const {places,descriptors} = require('./seedHelpers');
+const Campground = require('../models/campground');
+
+mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
+
+const db = mongoose.connection;
+db.on("error",console.error.bind(console,"connection error:"));
+db.once("open",()=>{
+    console.log("Database connected");
+});
+
+const sample=array=>array[Math.floor(Math.random()*array.length)];
+
+const seedDB = async() => {
+    await Campground.deleteMany({});
+    for(let i=0;i<300; i++) {
+        const random1000=Math.floor(Math.random()*1000);
+        const price = Math.floor(Math.random() * 20) + 10;
+        const camp= new Campground({
+            //your user id
+            author: '6570907a25264df0d811e05e',
+            location: `${cities[random1000].city}, ${cities[random1000].state}`,
+            title: `${sample(descriptors)} ${sample(places)}`,
+            description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam dolores vero perferendis laudantium, consequuntur voluptatibus nulla architecto, sit soluta esse iure sed labore ipsam a cum nihil atque molestiae deserunt!',
+            price,
+            geometry: {
+                type: "Point",
+                coordinates: [
+                    cities[random1000].longitude,
+                    cities[random1000].latitude,
+                ]
+            },
+            images: 
+            [    
+                {
+                    url: 'https://res.cloudinary.com/dyhe08e16/image/upload/v1702905317/YelpCamp/zgdwlx6tqwhargt6rx0h.jpg',
+                    filename: 'YelpCamp/zgdwlx6tqwhargt6rx0h',
+                },
+                {
+                    url: 'https://res.cloudinary.com/dyhe08e16/image/upload/v1702905317/YelpCamp/rtrmsjiywf9sqombjjxk.jpg',
+                    filename: 'YelpCamp/rtrmsjiywf9sqombjjxk',
+                }  
+            ]
+        })
+        await camp.save();
+    }
+
+};
+
+seedDB().then(()=>{
+    mongoose.connection.close();
+});
